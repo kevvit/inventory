@@ -77,55 +77,54 @@
 ?>
 
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <?php echo "<title> " . $info['item'] . "</title>" ?>
-    
-    <link rel="stylesheet" type="text/css" href="invstyles.css">
-</head>
-<body>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <?php echo "<title> " . $info['item'] . "</title>" ?>
+        <link rel="stylesheet" type="text/css" href="invstyles.css">
+    </head>
+    <body>
         <form method = "post">
-    <main>
-        <section>
-                <?php echo "<p> Item</p>";?>
-                <div class = "row">
-                    <textarea name="item" rows="1" cols="5"><?php echo $info['item']; ?></textarea>
-                </div>
-                <?php echo "<p> Brand</p>";?>
-                <div class = "row">
-                    <textarea name="brand" rows="1" cols="5"><?php echo $info['brand']; ?></textarea>
-                </div>
-                <?php echo "<p> Supply</p>";?>
-                <div class = "row">
-                    <textarea name="supply" rows="1" cols="5"><?php echo $info['supply']; ?></textarea>
-                </div>
-                <?php echo "<p> Quantity </p>";?>
-                <div class = "row">
-                    <textarea name="quantity" rows="1" cols="5"><?php echo $info['quantity']; ?></textarea>
-                </div>
-                <?php echo "<p> Remind @ </p>";?>
-                <div class = "row">
-                    <textarea name="remindat" rows="1" cols="5"><?php echo $info['remindat']; ?></textarea>
-                </div>
-                <?php echo "<p> Price ($) </p>";?>
-                <div class = "row">
-                    <textarea name="price" rows="1" cols="5"><?php echo $info['price']; ?></textarea>
-                </div>
-                <?php echo "<p> Description </p>";?>
-                <div class = "row">
-                    <textarea name="description" rows="3" cols="5"><?php echo $info['description']; ?></textarea>
-                </div>
-                <?php echo "<p> Note </p>";?>
-                <div class = "row">
-                    <textarea name="note" rows="3" cols="5"><?php echo $info['note']; ?></textarea>
-                </div>
-                <div class="row" class="button-container">
-                    <button type="submit" name = "save" id = "save" class="save-button">Save</button>
-                    <button type="submit" name = "delete" id = "delete" class="delete-button">Delete</button>
-                </div>
+            <main>
+                <section>
+                        <?php echo "<p> Item</p>";?>
+                        <div class = "row">
+                            <textarea name="item" rows="1" cols="5"><?php echo $info['item']; ?></textarea>
+                        </div>
+                        <?php echo "<p> Brand</p>";?>
+                        <div class = "row">
+                            <textarea name="brand" rows="1" cols="5"><?php echo $info['brand']; ?></textarea>
+                        </div>
+                        <?php echo "<p> Supply</p>";?>
+                        <div class = "row">
+                            <textarea name="supply" rows="1" cols="5"><?php echo $info['supply']; ?></textarea>
+                        </div>
+                        <?php echo "<p> Quantity </p>";?>
+                        <div class = "row">
+                            <textarea name="quantity" rows="1" cols="5"><?php echo $info['quantity']; ?></textarea>
+                        </div>
+                        <?php echo "<p> Remind @ </p>";?>
+                        <div class = "row">
+                            <textarea name="remindat" rows="1" cols="5"><?php echo $info['remindat']; ?></textarea>
+                        </div>
+                        <?php echo "<p> Price ($) </p>";?>
+                        <div class = "row">
+                            <textarea name="price" rows="1" cols="5"><?php echo $info['price']; ?></textarea>
+                        </div>
+                        <?php echo "<p> Description </p>";?>
+                        <div class = "row">
+                            <textarea name="description" rows="3" cols="5"><?php echo $info['description']; ?></textarea>
+                        </div>
+                        <?php echo "<p> Note </p>";?>
+                        <div class = "row">
+                            <textarea name="note" rows="3" cols="5"><?php echo $info['note']; ?></textarea>
+                        </div>
+                        <div class="row" class="button-container">
+                            <button type="submit" name = "save" id = "save" class="save-button">Save</button>
+                            <button type="submit" name = "delete" id = "delete" class="delete-button">Delete</button>
+                        </div>
+                </section>
+            </main>
         </form>
-        </section>
-    </main>
-</body>
+    </body>
 </html>

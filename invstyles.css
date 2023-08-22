@@ -11,28 +11,30 @@ body {
 }
 
 .container {
-max-width: 1260px;
-margin: 0 auto;
-padding: 20px;
+    max-width: 1260px;
+    margin: 0 auto;
+    padding: 20px;
 }
 
 .centered-container {
-display: flex;
-flex-direction: column;
-align-items: center;
-text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
 }
 table {
-border-collapse: collapse;
-width: 1560px;
-border: 2px solid black;
-margin-top: 10px;
+    border-collapse: collapse;
+    width: 1560px;
+    border: 2px solid black;
+    margin-top: 10px;
 }
+
 th, td {
-border: 1px solid #333;
-padding: 10px;
-text-align: center;
+    border: 1px solid #333;
+    padding: 10px;
+    text-align: center;
 }
+
 input[type="submit"], input[type="button"] {
     padding: 8px 15px;
     font-size: 14px;
@@ -42,8 +44,9 @@ input[type="submit"], input[type="button"] {
     cursor: pointer;
     transition: background-color 0.2s, color 0.2s;
 }
+
 input[type='text'], .price {
-margin-right: 20px;
+    margin-right: 20px;
 }
 
 input[type="submit"]:hover,
@@ -60,6 +63,7 @@ input[type="text"]:focus {
 .save-button {
     background-color: #2ecc71; /* Green color for Save button */
 }
+
 .delete-button {
     background-color: #e74c3c; /* Red color for Delete button */
 }
