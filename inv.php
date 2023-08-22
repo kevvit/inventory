@@ -13,8 +13,21 @@ if ($conn->connect_error) {
 	die("Connection failed: " . $conn->connect_error);
 }
 
+# Truncates $str so that it has $maxChar max characters followed by '...' and returns it
+function truncate($str, $maxChar) {
+    if (!$str) {
+        return '';
+    }
+    if (strlen($str) > $maxChar) {
+        return substr($str, 0, $maxChar) . "...";
+    } else {
+        return $str;
+    }
+}
 
+$info = array();
 $curTable = "inv";
+$sql = "SELECT * FROM inv order by (quantity <= remindat) desc, quantity";
 if ($_POST) {
     foreach($_POST as $key => $value) {
         if (strpos($key, 'quantity') !== false) {
@@ -27,40 +40,66 @@ if ($_POST) {
             $id = $parts[1];
             $edit = '-';
         } else if (strpos($key, 'add') !== false) {
-            exit();
             $parts = explode('_', $key);
             $id = $parts[1];
             $edit = '+';
         }
     }
     if (isset($id)) {
-        exit();
         if ($edit === '+') {
             $quantity += $old_quantity;
+            $status = "+ QTY";
         } else {
             $quantity = $old_quantity - $quantity;
+            $status = "- QTY";
         }
         $sql = "UPDATE inv SET quantity = $quantity WHERE id = $id";
         $result = $conn->query($sql);
 
+        $sql = "SELECT * FROM inv WHERE id = $id";
+        $result = $conn->query($sql);
+        if ($result === false) {
+            echo "Error: " . $sql . "<br>" . $conn->error."<br/>";
+        } elseif ($result->num_rows > 0) {
+            $info = $result->fetch_assoc();
+        }
+        
+        $item = $info['item'];
+        $brand = $info['brand'];
+        $supply = $info['supply'];
+        $remindat = $info['remindat'];
+        $price = $info['price'];
+        $description = $info['description'];
+        $note = $info['note'];
+        $currentDatetime = date("Y-m-d H:i:s");
+        $sql = "INSERT INTO history (date, item, quantity, brand, supply, remindat, price, description, note, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param("ssissidsss", $currentDatetime, $item, $quantity, $brand, $supply, $remindat, $price, $description, $note, $status);
+        $stmt->execute();
+        $sql = "SELECT * FROM inv order by (quantity <= remindat) desc, quantity";
     }
 	if (isset($_POST['itembtn'])) {
-		$item = $_POST['item'] ?? '';
-		$sql = "SELECT * FROM inv ";
+		$item = $_POST['itemSelect'] ?? 'None';
+		$sql = "SELECT * FROM inv";
 		if ($item != '') {
-			$sql = $sql . "AND item = '" . $item . "'";
+			$sql = $sql . " WHERE item = '$item'";
 		}
         $sql = $sql . " ORDER BY (quantity <= remindat) desc, quantity";
 	} elseif (isset($_POST['historybtn'])) {
-		$item = $_POST['item'] ?? '';
-		$sql = "SELECT * FROM history ";
+		$item = $_POST['itemSelect'] ?? '';
+		$sql = "SELECT * FROM history";
 		if ($item != '') {
-			$sql = $sql . "AND item = '" . $item . "'";
+			$sql = $sql . " WHERE item = '" . $item . "'";
 		}
         $sql = $sql . " ORDER BY date DESC";
 		$curTable = "history";
-	} elseif (isset($_POST['insertbtn'])) {
-        $item = ($_POST['item'] ?? '');
+	} elseif (isset($_POST['clear'])) {
+        $_POST['itemSelect'] = '';
+    } elseif (isset($_POST['insertbtn'])) {
+        $item = ($_POST['item'] ?? 'None');
+        if ($item === '') {
+            $item = 'None';
+        }
         $quantity = 0;
         $brand = ($_POST['brand'] ?? '');
         $supply = ($_POST['supply'] ?? '');
@@ -83,8 +122,6 @@ if ($_POST) {
         $stmt->execute();
         $sql = "SELECT * FROM inv order by (quantity <= remindat) desc, quantity";
 	}
-} else {
-    $sql = "SELECT * FROM inv order by (quantity <= remindat) desc, quantity";
 }
 
 $info = array();
@@ -97,80 +134,12 @@ if ($result === false) {
     }
 }
 
-
-
 ?>
 
 <html>
 <head>
+<link rel="stylesheet" type="text/css" href="invstyles.css">
 <title>INV</title>
-<style>
-    body, h1, h2, h3, p, ul, li {
-    margin: 0;
-    padding: 0;
-    }
-    body {
-        font-family: Arial, sans-serif;
-        background-color: #f7f7f7;
-        color: #333;
-        width: 90%;
-    }
-    .container {
-    max-width: 1260px;
-    margin: 0 auto;
-    padding: 20px;
-    }
-
-    .centered-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-}
-    table {
-    border-collapse: collapse;
-    width: 1560px;
-    border: 2px solid black;
-    margin-top: 20px;
-}
-th, td {
-    border: 1px solid #333;
-    padding: 10px;
-    text-align: center;
-}
-  input[type="submit"] {
-    padding: 8px 15px;
-    font-size: 14px;
-    border: none;
-    background-color: #333;
-    color: #fff;
-    cursor: pointer;
-    transition: background-color 0.2s, color 0.2s;
-}
-input[type='text'], .price {
-    margin-right: 20px;
-}
-
-input[type="submit"]:hover,
-input[type="text"]:focus {
-    background-color: white; /* Change background color */
-    color: black; /* Change text color */
-    outline: none;
-}
-
-.center { text-align: center; 
-}
-  ul#newlist {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-}
-
-ul#newlist li {
-    padding: 5px 0;
-    border-bottom: 1px solid #ccc;
-}
-</style>
 
 <link rel="stylesheet" href="//code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
   <link rel="stylesheet" href="/resources/demos/style.css">
@@ -185,33 +154,35 @@ ul#newlist li {
 	function myFunction() {
 		alert("I am an alert box!"); // this is the message in ""
 	}
+    function openPrintPage() {
+        window.open("print.php", "_blank"); // Open print.php in a new tab/window
+    }
 	</script>
 </head>
 <body>
-    <div class = "centered container">
+    <div class = "centered-container">
 <br>
-<h2>INV</h2>
+<h2 class="hide-on-print">INVENTORY</h2>
 <br>
 
 <!--SELECTION TABLE -->
-<table border="1">
+<table border="1" class="hide-on-print">
 <tr>
     <td style="background-color: #e9ebf4;">
 <form name="searchForm" method="POST">
-	
-   
-   <b> Item:</b> <input name="item" type="text" style="height:25pt;width:100pt;">
+   <b> Item:</b> <input name="itemSelect" type="text" style="height:25pt;width:100pt;" value="<?php echo isset($_POST['itemSelect']) ? $_POST['itemSelect'] : '' ?>">
 	<input type="submit" name="itembtn" value="Items" id="itemgo" />
 	<input type="submit" name="historybtn" value="History" id="historygo" />
+	<input type="submit" name="clear" value="Clear" id="cleargo" />
+	<input type="button" name="print" style="background-color: #42f" value="Print" onclick="openPrintPage()" />
   <br>
 </form>
 </td>
 </tr>
 </table>
 
-
 <!-- NEW ITEM TABLE -->
-<table border="1">
+<table border="1" class="hide-on-print">
 <tr>
     <td style="background-color: #e9ebf4;">
 <form name="inputForm" method="POST">
@@ -250,8 +221,8 @@ ul#newlist li {
 	
 	$colour = "#c3cde6";
 	foreach ($info as $row){
-        $encoded_url = $row['item'] . "/" . $row['brand'] . "/" . $row['supply'];
-		
+        $row['description'] = truncate($row['description'], 50);
+        $row['note'] = truncate($row['note'], 50);
 	?>
 	<tr bgcolor="<?= $colour ?>">
         <td class="center"><?= $row['date'] ?></td>
@@ -282,7 +253,7 @@ ul#newlist li {
 	  <th>Price</th>
 	  <th>Description</th>
       <th>Note</th>
-      <th>+/-</th>
+      <th class="hide-on-print">+/-</th>
     </tr>
 	
 	<?php
@@ -295,6 +266,8 @@ ul#newlist li {
 		} else {
 			$colour = "#c3cde6";
 		}
+        $row['description'] = truncate($row['description'], 50);
+        $row['note'] = truncate($row['note'], 50);
 	?>
 	<tr bgcolor="<?= $colour ?>">
         <td class="center"><a href="view_item.php?id=<?= $row['id'] ?>" target="_blank"><?= $row['item'] ?></a></td>
@@ -304,11 +277,11 @@ ul#newlist li {
         <td class="center"><?= $row['price'] ?></td>
         <td class="center"><?= $row['description'] ?></td>
         <td class="center"><?= $row['note'] ?></td>
-        <td class="center">
+        <td class="center hide-on-print">
             <form method='POST'>
-                <input type="submit" name="<?php "remove_" . $row['id']?>" value="-"/>
-                <input name="<?php "quantity_" . $row['id'] . '_' . $row['quantity']?>" type="number" style="height:25pt;width:40pt;">
-                <input type="submit" name="<?php "add_" . $row['id']?>" value="+" id="add"/>
+                <input type="submit" name="<?php echo "remove_" . $row['id'];?>" value="-"/>
+                <input name="<?php echo "quantity_" . $row['id'] . '_' . $row['quantity'];?>" type="number" style="height:25pt;width:40pt;">
+                <input type="submit" name="<?php echo "add_" . $row['id'];?>" value="+" id="add"/>
             </form>
         </td>
 	</tr>

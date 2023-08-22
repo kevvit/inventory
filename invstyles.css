@@ -1,0 +1,159 @@
+@import url('https://fonts.googleapis.com/css?family=Open+Sans');
+
+body, h1, h2, h3, p, ul, li, textarea {
+    margin: 0;
+    padding: 0;
+}
+body {
+    font-family: "Open Sans", sans-serif;
+    background-color: #f7f7f7;
+    color: #333;
+}
+
+.container {
+max-width: 1260px;
+margin: 0 auto;
+padding: 20px;
+}
+
+.centered-container {
+display: flex;
+flex-direction: column;
+align-items: center;
+text-align: center;
+}
+table {
+border-collapse: collapse;
+width: 1560px;
+border: 2px solid black;
+margin-top: 10px;
+}
+th, td {
+border: 1px solid #333;
+padding: 10px;
+text-align: center;
+}
+input[type="submit"], input[type="button"] {
+    padding: 8px 15px;
+    font-size: 14px;
+    border: none;
+    background-color: #333;
+    color: #fff;
+    cursor: pointer;
+    transition: background-color 0.2s, color 0.2s;
+}
+input[type='text'], .price {
+margin-right: 20px;
+}
+
+input[type="submit"]:hover,
+input[type="text"]:focus {
+    background-color: white; /* Change background color */
+    color: black; /* Change text color */
+    outline: none;
+}
+
+.center { 
+    text-align: center; 
+}
+
+.save-button {
+    background-color: #2ecc71; /* Green color for Save button */
+}
+.delete-button {
+    background-color: #e74c3c; /* Red color for Delete button */
+}
+
+ul#newlist {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+ul#newlist li {
+    padding: 5px 0;
+    border-bottom: 1px solid #ccc;
+}
+
+.row {
+    text-align: center; /* Center-align content within the row */
+    padding-bottom: 20px;
+}
+.button-container {
+    display: flex;
+    justify-content: center;
+}
+
+button {
+    padding: 8px 15px;
+    font-size: 14px;
+    border: none;
+    color: #000;
+    cursor: pointer;
+    transition: background-color 0.2s, color 0.2s;
+    margin: 0 10px; /* Add margin between buttons */
+}
+
+h1 {
+    font-size: 36px;
+    margin-bottom: 10px;
+}
+
+main {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+section {
+    margin-bottom: 40px;
+}
+
+h2 {
+    font-size: 50px;
+    text-align: center;
+    margin-bottom: 10px;
+}
+
+p {
+    font-size: 18px;
+    text-align: center;
+}
+textarea {
+    font-family: "Helvetica Neue", sans-serif; /* Better font choice */
+    font-size: 28px; /* Better font size */
+    padding: 10px;
+    width: 500px;
+    border: 1px solid #ccc;
+    background-color: white;
+    color: #333;
+    resize: vertical; /* Allow vertical resizing */
+    text-align: center;
+    transition: border-color 0.2s;
+}
+
+textarea:focus {
+    border-color: #555;
+}
+@media print {
+    /* Define print-specific styles here */
+    table {
+        border-collapse: collapse;
+        width: 100%;
+    }
+    
+    th, td {
+        border: 1px solid black;
+        padding: 4px; /* Adjust cell padding to make cells smaller */
+        text-align: left;
+        font-size: 12px; /* Adjust font size to make text smaller */
+    }
+    
+    tr {
+        page-break-inside: avoid;
+    }
+
+    .hide-on-print {
+        display: none;
+    }
+}
