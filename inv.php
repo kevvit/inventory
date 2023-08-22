@@ -170,11 +170,11 @@ if ($result === false) {
 <tr>
     <td style="background-color: #e9ebf4;">
 <form name="searchForm" method="POST">
-   <b> Item:</b> <input name="itemSelect" type="text" style="height:25pt;width:100pt;" value="<?php echo isset($_POST['itemSelect']) ? $_POST['itemSelect'] : '' ?>">
-	<input type="submit" name="itembtn" value="Items" id="itemgo" />
-	<input type="submit" name="historybtn" value="History" id="historygo" />
-	<input type="submit" name="clear" value="Clear" id="cleargo" />
-	<input type="button" name="print" style="background-color: #42f" value="Print" onclick="openPrintPage()" />
+   <b> ITEM:</b> <input name="itemSelect" type="text" style="height:25pt;width:100pt;" value="<?php echo isset($_POST['itemSelect']) ? $_POST['itemSelect'] : '' ?>">
+	<input type="submit" name="itembtn" value="ITEMS" id="itemgo" />
+	<input type="submit" name="historybtn" value="HISTORY" id="historygo" />
+	<input type="submit" name="clear" value="CLEAR" id="cleargo" />
+	<input type="button" name="print" style="background-color: #42f" value="PRINT" onclick="openPrintPage()" />
   <br>
 </form>
 </td>
@@ -186,12 +186,12 @@ if ($result === false) {
 <tr>
     <td style="background-color: #e9ebf4;">
 <form name="inputForm" method="POST">
-   <b> Item:</b> <input name="item" type="text" style="height:25pt;width:100pt;">
-   <b> Brand:	</b> <input name="brand" type="text" style="height:25pt;width:100pt;">
-   <b> Supply:	</b> <input name="supply" type="text" style="height:25pt;width:100pt;">
-   <b> Price:</b> <input class="price" name="price" type="number" step='0.01' style="height:25pt;width:100pt;">
-   <b> Description:	</b> <input name="description" type="text" style="height:25pt;width:100pt;">
-   <input type="submit" name="insertbtn" value="Insert new item" id="insertgo" />
+   <b> ITEM:</b> <input name="item" type="text" style="height:25pt;width:100pt;">
+   <b> BRAND:	</b> <input name="brand" type="text" style="height:25pt;width:100pt;">
+   <b> SUPPLY:	</b> <input name="supply" type="text" style="height:25pt;width:100pt;">
+   <b> PRICE:</b> <input class="price" name="price" type="number" step='0.01' style="height:25pt;width:100pt;">
+   <b> DESCRIPTION:	</b> <input name="description" type="text" style="height:25pt;width:100pt;">
+   <input type="submit" name="insertbtn" value="INSERT NEW ITEM" id="insertgo" />
 	<br>
 </form>
 </td>
@@ -204,16 +204,16 @@ if ($result === false) {
  <table border="1">
     <tr style="background-color: #eee;">
       
-	  <th>Date</th>
-      <th>Item</th>
-	  <th>Quantity</th>
-	  <th>Remind @</th>
-	  <th>Brand</th>
-	  <th>Supply</th>
-	  <th>Price</th>
-	  <th>Description</th>
-      <th>Note</th>
-      <th>Status</th>
+	  <th>DATE</th>
+      <th>ITEM</th>
+	  <th>QUANTITY</th>
+	  <th>REMIND @</th>
+	  <th>BRAND</th>
+	  <th>SUPPLY</th>
+	  <th>PRICE</th>
+	  <th>DESCRIPTION</th>
+      <th>NOTE</th>
+      <th>STATUS</th>
     </tr>
 	
 	<?php
@@ -246,13 +246,13 @@ if ($result === false) {
 		<table border="1">
     <tr style="background-color: #eee;">
       
-      <th>Item</th>
-	  <th>Quantity</th>
-	  <th>Brand</th>
-	  <th>Supply</th>
-	  <th>Price</th>
-	  <th>Description</th>
-      <th>Note</th>
+      <th>ITEM</th>
+	  <th>QUANTITY</th>
+	  <th>BRAND</th>
+	  <th>SUPPLY</th>
+	  <th>PRICE</th>
+	  <th>DESCRIPTION</th>
+      <th>NOTE</th>
       <th class="hide-on-print">+/-</th>
     </tr>
 	
