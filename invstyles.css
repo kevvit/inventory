@@ -145,10 +145,10 @@ textarea:focus {
     th, td {
         border: 1px solid black;
         padding: 4px; /* Adjust cell padding to make cells smaller */
-        text-align: left;
+        text-align: center;
         font-size: 12px; /* Adjust font size to make text smaller */
     }
-    
+
     tr {
         page-break-inside: avoid;
     }

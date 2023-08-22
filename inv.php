@@ -1,138 +1,104 @@
 <?php
+    require_once("invhelper.php");
+    $conn = connSetup();
 
-$servername = "localhost"; # server name
-$username = "root";
-$password = "";
-$database = "gld";
+    $info = array();
+    $curTable = "inv";
+    $sql = "SELECT * FROM inv order by (quantity <= remindat) desc, quantity";
+    if ($_POST) {
+        foreach($_POST as $key => $value) {
+            if (strpos($key, 'quantity') !== false) {
+                $parts = explode('_', $key);
+                $id = $parts[1];
+                $old_quantity = $parts[2];
+                $quantity = $value;
+            } else if (strpos($key, 'remove') !== false) {
+                $parts = explode('_', $key);
+                $id = $parts[1];
+                $edit = '-';
+            } else if (strpos($key, 'add') !== false) {
+                $parts = explode('_', $key);
+                $id = $parts[1];
+                $edit = '+';
+            }
+        }
+        if (isset($id)) {
+            if ($edit === '+') {
+                $quantity += $old_quantity;
+                $status = "+ QTY";
+            } else {
+                $quantity = $old_quantity - $quantity;
+                $status = "- QTY";
+            }
+            $sql = "UPDATE inv SET quantity = $quantity WHERE id = $id";
+            $result = $conn->query($sql);
 
-// $info -> 0 is a purchase history, 1 is the item info
-// $remind -> 1 is almost out, quantity < remindat
+            updateHistory($conn, $status, $id);
+            $sql = "SELECT * FROM inv order by (quantity <= remindat) desc, quantity";
+        }
+        if (isset($_POST['itembtn'])) {
+            $item = $_POST['itemSelect'] ?? 'None';
+            $sql = "SELECT * FROM inv";
+            if ($item != '') {
+                $sql = $sql . " WHERE item = '$item'";
+            }
+            $sql = $sql . " ORDER BY (quantity <= remindat) desc, quantity";
+        } elseif (isset($_POST['historybtn'])) {
+            $item = $_POST['itemSelect'] ?? '';
+            $sql = "SELECT * FROM history";
+            if ($item != '') {
+                $sql = $sql . " WHERE item = '" . $item . "'";
+            }
+            $sql = $sql . " ORDER BY date DESC";
+            $curTable = "history";
+        } elseif (isset($_POST['clear'])) {
+            $_POST['itemSelect'] = '';
+        } elseif (isset($_POST['insertbtn'])) {
+            $item = ($_POST['item'] ?? 'None');
+            if ($item === '') {
+                $item = 'None';
+            }
+            $quantity = 0;
+            $brand = ($_POST['brand'] ?? '');
+            $supply = ($_POST['supply'] ?? '');
+            $price = ($_POST['price'] ?? '');
+            $description = ($_POST['description'] ?? '');
+            
+            // Insert into item list
+            $sql = "INSERT INTO inv (item, quantity, brand, supply, price, description) VALUES (?, ?, ?, ?, ?, ?)";
+            $stmt = $conn->prepare($sql);
+            $stmt->bind_param("sissds", $item, $quantity, $brand, $supply, $price, $description);
+            $stmt->execute();
+            $info = array();
+            $sql = "SELECT * FROM inv ORDER BY inserted_at DESC LIMIT 1";
+            $result = $conn->query($sql);
+            if ($result === false) {
+                echo "Error: " . $sql . "<br>" . $conn->error."<br/>";
+            } elseif ($result->num_rows > 0) {
+                $id = $result->fetch_assoc()['id'];
+            }
 
-$conn = new mysqli($servername, $username, $password, $database);
-if ($conn->connect_error) {
-	die("Connection failed: " . $conn->connect_error);
-}
-
-# Truncates $str so that it has $maxChar max characters followed by '...' and returns it
-function truncate($str, $maxChar) {
-    if (!$str) {
-        return '';
-    }
-    if (strlen($str) > $maxChar) {
-        return substr($str, 0, $maxChar) . "...";
-    } else {
-        return $str;
-    }
-}
-
-$info = array();
-$curTable = "inv";
-$sql = "SELECT * FROM inv order by (quantity <= remindat) desc, quantity";
-if ($_POST) {
-    foreach($_POST as $key => $value) {
-        if (strpos($key, 'quantity') !== false) {
-            $parts = explode('_', $key);
-            $id = $parts[1];
-            $old_quantity = $parts[2];
-            $quantity = $value;
-        } else if (strpos($key, 'remove') !== false) {
-            $parts = explode('_', $key);
-            $id = $parts[1];
-            $edit = '-';
-        } else if (strpos($key, 'add') !== false) {
-            $parts = explode('_', $key);
-            $id = $parts[1];
-            $edit = '+';
+            $currentDatetime = date("Y-m-d H:i:s");
+            $remindat = '0';
+            $note = '';
+            $status = "New";
+            $sql = "INSERT INTO history (id, date, item, quantity, brand, supply, remindat, price, description, note, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            $stmt = $conn->prepare($sql);
+            $stmt->bind_param("dssissidsss", $id, $currentDatetime, $item, $quantity, $brand, $supply, $remindat, $price, $description, $note, $status);
+            $stmt->execute();
+            $sql = "SELECT * FROM inv order by (quantity <= remindat) desc, quantity";
         }
     }
-    if (isset($id)) {
-        if ($edit === '+') {
-            $quantity += $old_quantity;
-            $status = "+ QTY";
-        } else {
-            $quantity = $old_quantity - $quantity;
-            $status = "- QTY";
-        }
-        $sql = "UPDATE inv SET quantity = $quantity WHERE id = $id";
-        $result = $conn->query($sql);
 
-        $sql = "SELECT * FROM inv WHERE id = $id";
-        $result = $conn->query($sql);
-        if ($result === false) {
-            echo "Error: " . $sql . "<br>" . $conn->error."<br/>";
-        } elseif ($result->num_rows > 0) {
-            $info = $result->fetch_assoc();
+    $info = array();
+    $result = $conn->query($sql);
+    if ($result === false) {
+        echo "Error: " . $sql . "<br>" . $conn->error."<br/>";
+    } elseif ($result->num_rows > 0) {
+        while ($row = $result->fetch_assoc()) {
+            array_push($info, $row);
         }
-        
-        $item = $info['item'];
-        $brand = $info['brand'];
-        $supply = $info['supply'];
-        $remindat = $info['remindat'];
-        $price = $info['price'];
-        $description = $info['description'];
-        $note = $info['note'];
-        $currentDatetime = date("Y-m-d H:i:s");
-        $sql = "INSERT INTO history (date, item, quantity, brand, supply, remindat, price, description, note, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-        $stmt = $conn->prepare($sql);
-        $stmt->bind_param("ssissidsss", $currentDatetime, $item, $quantity, $brand, $supply, $remindat, $price, $description, $note, $status);
-        $stmt->execute();
-        $sql = "SELECT * FROM inv order by (quantity <= remindat) desc, quantity";
     }
-	if (isset($_POST['itembtn'])) {
-		$item = $_POST['itemSelect'] ?? 'None';
-		$sql = "SELECT * FROM inv";
-		if ($item != '') {
-			$sql = $sql . " WHERE item = '$item'";
-		}
-        $sql = $sql . " ORDER BY (quantity <= remindat) desc, quantity";
-	} elseif (isset($_POST['historybtn'])) {
-		$item = $_POST['itemSelect'] ?? '';
-		$sql = "SELECT * FROM history";
-		if ($item != '') {
-			$sql = $sql . " WHERE item = '" . $item . "'";
-		}
-        $sql = $sql . " ORDER BY date DESC";
-		$curTable = "history";
-	} elseif (isset($_POST['clear'])) {
-        $_POST['itemSelect'] = '';
-    } elseif (isset($_POST['insertbtn'])) {
-        $item = ($_POST['item'] ?? 'None');
-        if ($item === '') {
-            $item = 'None';
-        }
-        $quantity = 0;
-        $brand = ($_POST['brand'] ?? '');
-        $supply = ($_POST['supply'] ?? '');
-        $price = ($_POST['price'] ?? '');
-        $description = ($_POST['description'] ?? '');
-        
-        // Insert into item list
-        $sql = "INSERT INTO inv (item, quantity, brand, supply, price, description) VALUES (?, ?, ?, ?, ?, ?)";
-        $stmt = $conn->prepare($sql);
-        $stmt->bind_param("sissds", $item, $quantity, $brand, $supply, $price, $description);
-        $stmt->execute();
-
-        $currentDatetime = date("Y-m-d H:i:s");
-        $remindat = '0';
-        $note = '';
-        $status = "New";
-        $sql = "INSERT INTO history (date, item, quantity, brand, supply, remindat, price, description, note, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-        $stmt = $conn->prepare($sql);
-        $stmt->bind_param("ssissidsss", $currentDatetime, $item, $quantity, $brand, $supply, $remindat, $price, $description, $note, $status);
-        $stmt->execute();
-        $sql = "SELECT * FROM inv order by (quantity <= remindat) desc, quantity";
-	}
-}
-
-$info = array();
-$result = $conn->query($sql);
-if ($result === false) {
-	echo "Error: " . $sql . "<br>" . $conn->error."<br/>";
-} elseif ($result->num_rows > 0) {
-	while ($row = $result->fetch_assoc()) {
-        array_push($info, $row);
-    }
-}
 
 ?>
 

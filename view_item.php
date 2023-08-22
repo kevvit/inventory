@@ -1,19 +1,8 @@
 <?php
-    function containsOnlyIntegers($string, $mode) {
-        if ($mode == 1) {
-            return preg_match('/^[0-9]+(\.[0-9]+)?$/', $string) === 1;
-        }
-        return preg_match('/^[0-9]+$/', $string) === 1;
-    }
+    require_once("invhelper.php");
+    
     if (isset($_GET['id'])) {
-        $servername = "localhost"; # server name
-        $username = "root";
-        $password = "";
-        $database = "gld";
-        $conn = new mysqli($servername, $username, $password, $database);
-        if ($conn->connect_error) {
-            die("Connection failed: " . $conn->connect_error);
-        }
+        $conn = connSetup();
         $id = $_GET['id'];
 
         # Find the email with the uid as decoded from the url
@@ -63,9 +52,9 @@
             $stmt->execute();
 
             $currentDatetime = date("Y-m-d H:i:s");
-            $sql = "INSERT INTO history (date, item, quantity, brand, supply, remindat, price, description, note, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            $sql = "INSERT INTO history (id, date, item, quantity, brand, supply, remindat, price, description, note, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
             $stmt = $conn->prepare($sql);
-            $stmt->bind_param("ssissidsss", $currentDatetime, $item, $quantity, $brand, $supply, $remindat, $price, $description, $note, $status);
+            $stmt->bind_param("dssissidsss", $id, $currentDatetime, $item, $quantity, $brand, $supply, $remindat, $price, $description, $note, $status);
             $stmt->execute();
         } elseif (isset($_POST['delete'])) {
             $sql = "SELECT * FROM inv WHERE id = $id";
@@ -75,20 +64,9 @@
             } elseif ($result->num_rows > 0) {
                 $info = $result->fetch_assoc();
             }
-            
-            $item = $info['item'];
-            $brand = $info['brand'];
-            $supply = $info['supply'];
-            $remindat = $info['remindat'];
-            $price = $info['price'];
-            $description = $info['description'];
-            $note = $info['note'];
-            $currentDatetime = date("Y-m-d H:i:s");
+
             $status = "DELETED";
-            $sql = "INSERT INTO history (date, item, quantity, brand, supply, remindat, price, description, note, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-            $stmt = $conn->prepare($sql);
-            $stmt->bind_param("ssissidsss", $currentDatetime, $item, $quantity, $brand, $supply, $remindat, $price, $description, $note, $status);
-            $stmt->execute();
+            updateHistory($conn, $status, $id);
             $sql = "DELETE FROM inv WHERE id = $id";
             $result = $conn->query($sql);
 
