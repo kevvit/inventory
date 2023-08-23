@@ -1,9 +1,26 @@
 <?php
+    session_start();
+    #session_destroy();
     require_once("invhelper.php");
     $conn = connSetup();
+    $all = false;
+    if (isset($_POST['itemsPerPage'])) {
+        $itemsPerPage = $_POST['itemsPerPage'];
+    } else {
+        $itemsPerPage = $_SESSION['itemsPerPage'];
+    }
+    if ($itemsPerPage == 'ALL') {
+        $all = true;
+    }
+	$currentPage = isset($_GET['page']) ? max(1, intval($_GET['page'])) : 1;
+    if (!$all) $startIndex = ($currentPage - 1) * $itemsPerPage;
     $info = array();
-    $curTable = "inv";
-    $sql = "SELECT * FROM inv order by (quantity <= remindat) desc, quantity";
+    if (!(isset($_SESSION['curTable']))) $_SESSION['curTable'] = "inv";
+    if ($_SESSION['curTable'] == "history") {
+        $sql = "SELECT * FROM history ORDER BY date DESC";
+    } else {
+        $sql = "SELECT * FROM inv order by (quantity <= remindat) desc, quantity";
+    }
     if ($_POST) {
         foreach($_POST as $key => $value) {
             if (strpos($key, 'quantity') !== false) {
@@ -34,24 +51,58 @@
 
             updateHistory($conn, $status, $id);
             $sql = "SELECT * FROM inv order by (quantity <= remindat) desc, quantity";
+			header("Location: inv.php?page=$currentPage");
         }
         if (isset($_POST['itembtn'])) {
+            $_SESSION['curTable'] = "inv";
+            $_SESSION['itemsPerPage'] = $_POST['itemsPerPage'];
             $item = $_POST['itemSelect'] ?? 'None';
             $sql = "SELECT * FROM inv";
             if ($item != '') {
-                $sql = $sql . " WHERE item = '$item'";
+                $sql = $sql . " WHERE item LIKE '%$item%'";
+                $_SESSION['itemSelect'] = $item;
             }
             $sql = $sql . " ORDER BY (quantity <= remindat) desc, quantity";
+            $currentPage = 1;
+			$startIndex = 0;
         } elseif (isset($_POST['historybtn'])) {
+            $_SESSION['curTable'] = "history";
+            $_SESSION['itemsPerPage'] = $_POST['itemsPerPage'];
             $item = $_POST['itemSelect'] ?? '';
-            $sql = "SELECT * FROM history";
+            $afterDate = $_POST['afterdate'] ?? '';
+            $beforeDate = $_POST['beforedate'] ?? '';
+            $sql = "SELECT * FROM history WHERE id > 0";
             if ($item != '') {
-                $sql = $sql . " WHERE item = '" . $item . "'";
+                $sql = $sql . " AND item LIKE '%$item%'";
+                $_SESSION['itemSelect'] = $item;
+            }
+            $dateTime = DateTime::createFromFormat("m/d/Y", $afterDate);
+            if ($dateTime === false) {
+                $afterDate = '';
+            } else {
+                $afterDate = $dateTime->format("Y-m-d");
+                $sql = $sql . " AND date >= '$afterDate'";
+                $_SESSION['afterdate'] = $afterDate;
+            }
+            $dateTime = DateTime::createFromFormat("m/d/Y", $beforeDate);
+            if ($dateTime === false) {
+                $beforeDate = '';
+            } else {
+                $beforeDate = $dateTime->format("Y-m-d");
+                $sql = $sql . " AND date <= '$beforeDate'";
+                $_SESSION['beforedate'] = $beforeDate;
             }
             $sql = $sql . " ORDER BY date DESC";
-            $curTable = "history";
+            $currentPage = 1;
+			$startIndex = 0;
         } elseif (isset($_POST['clear'])) {
             $_POST['itemSelect'] = '';
+            $_POST['afterdate'] = '';
+            $_POST['beforedate'] = '';
+            $_SESSION['itemSelect'] = '';
+            $_SESSION['afterdate'] = '';
+            $_SESSION['beforedate'] = '';
+			header("Location: inv.php?page=1");
         } elseif (isset($_POST['insertbtn'])) {
             $item = ($_POST['item'] ?? 'None');
             if ($item === '') {
@@ -86,9 +137,10 @@
             $stmt->bind_param("dssissidsss", $id, $currentDatetime, $item, $quantity, $brand, $supply, $remindat, $price, $description, $note, $status);
             $stmt->execute();
             $sql = "SELECT * FROM inv order by (quantity <= remindat) desc, quantity";
+			header("Location: inv.php?page=1");
         }
     }
-
+    if (!$all) $sql = $sql. " LIMIT " . $itemsPerPage . " OFFSET " . $startIndex;
     $info = array();
     $result = $conn->query($sql);
     if ($result === false) {
@@ -98,6 +150,7 @@
             array_push($info, $row);
         }
     }
+    if (!$all) $totalPages = calculatePages($sql, $conn);
 
 ?>
 
@@ -114,16 +167,16 @@
                 $( ".datepicker" ).datepicker();
             } );
         </script>
-        <script>
-            function openPrintPage() {
-                window.open("print.php", "_blank"); // Open print.php in a new tab/window
-            }
-        </script>
     </head>
     <body>
         <div class = "centered-container">
             <br>
-            <h2 class="hide-on-print">INVENTORY</h2>
+            <?php
+                if ($_SESSION['curTable'] == "history") { ?>
+                    <h2 class="hide-on-print">INVENTORY HISTORY</h2>
+            <?php } else { ?>
+                    <h2 class="hide-on-print">INVENTORY</h2>
+            <?php }?>
             <br>
 
             <!--SELECTION TABLE -->
@@ -131,11 +184,25 @@
                 <tr>
                     <td style="background-color: #e9ebf4;">
                         <form name="searchForm" method="POST">
-                            <b> ITEM:</b> <input name="itemSelect" type="text" style="height:25pt;width:100pt;" value="<?php echo isset($_POST['itemSelect']) ? $_POST['itemSelect'] : '' ?>">
+                            <b> ITEM:</b> <input name="itemSelect" type="text" style="height:25pt;width:100pt;" value="<?php echo isset($_SESSION['itemSelect']) ? $_SESSION['itemSelect'] : '' ?>">
+                             <?php
+                                if ($_SESSION['curTable'] == "history") {
+                            ?>
+                                    <b> AFTER:</b> <input name="afterdate" class="datepicker" style="height:25pt;width:100pt;margin-right:20px;" value="<?php echo isset($_SESSION['afterdate']) ? $_SESSION['afterdate'] : '' ?>">
+                                    <b> BEFORE:</b> <input name="beforedate" class="datepicker" style="height:25pt;width:100pt;margin-right:20px;" value="<?php echo isset($_SESSION['beforedate']) ? $_SESSION['beforedate'] : '' ?>">
+                            <?php 
+                                }
+                             ?>
                             <input type="submit" name="itembtn" value="ITEMS" id="itemgo" />
                             <input type="submit" name="historybtn" value="HISTORY" id="historygo" />
-                            <input type="submit" name="clear" value="CLEAR" id="cleargo" />
-                            <input type="button" name="print" style="background-color: #42f" value="PRINT" onclick="openPrintPage()" />
+                            <input type="submit" name="clear" class="marg" value="CLEAR" id="cleargo" />
+                            <b>ITEMS/PAGE:</b> 
+                            <select name="itemsPerPage" style="height:25pt;width:100pt;">
+                                <option <?php if (isset($_SESSION['itemsPerPage']) && $_SESSION['itemsPerPage'] == 'ALL') echo "selected";?>>ALL</option>
+                                <option <?php if (isset($_SESSION['itemsPerPage']) && $_SESSION['itemsPerPage'] == '20') echo "selected";?>>20</option>
+                                <option <?php if (isset($_SESSION['itemsPerPage']) && $_SESSION['itemsPerPage'] == '50') echo "selected";?>>50</option>
+                                <option <?php if (isset($_SESSION['itemsPerPage']) && $_SESSION['itemsPerPage'] == '100') echo "selected";?>>100</option>
+                            </select> 
                             <br>
                         </form>
                     </td>
@@ -150,7 +217,7 @@
                             <b> ITEM:</b> <input name="item" type="text" style="height:25pt;width:100pt;">
                             <b> BRAND:	</b> <input name="brand" type="text" style="height:25pt;width:100pt;">
                             <b> SUPPLY:	</b> <input name="supply" type="text" style="height:25pt;width:100pt;">
-                            <b> PRICE:</b> <input class="price" name="price" type="number" step='0.01' style="height:25pt;width:100pt;">
+                            <b> PRICE:</b> <input class="marg" name="price" type="number" step='0.01' style="height:25pt;width:100pt;">
                             <b> DESCRIPTION:	</b> <input name="description" type="text" style="height:25pt;width:100pt;">
                             <input type="submit" name="insertbtn" value="INSERT NEW ITEM" id="insertgo" />
                             <br>
@@ -160,7 +227,7 @@
             </table>
 
 
-            <?php if (isset($_POST['historybtn'])) { ?>
+            <?php if ($_SESSION['curTable'] == "history") { ?>
 
             <table border="1">
                 <tr style="background-color: #eee;">
@@ -248,5 +315,8 @@
             </table>
 	        <?php } ?>
         </div>
+    
+        </form>
+        <?php if (!$all) pagination($currentPage, $totalPages, "inv"); ?>
     </body>
 </html>

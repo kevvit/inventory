@@ -120,11 +120,64 @@
                             <textarea name="note" rows="3" cols="5"><?php echo $info['note']; ?></textarea>
                         </div>
                         <div class="row" class="button-container">
-                            <button type="submit" name = "save" id = "save" class="save-button">Save</button>
-                            <button type="submit" name = "delete" id = "delete" class="delete-button">Delete</button>
+                            <button type="submit" name = "save" id = "save" class="save-button hide-on-print">Save</button>
+                            <button type="submit" name = "delete" id = "delete" class="delete-button hide-on-print">Delete</button>
                         </div>
                 </section>
             </main>
         </form>
+        <?php
+            $sql = "SELECT * FROM history WHERE id = $id ORDER BY date DESC";
+            $info = array();
+            $result = $conn->query($sql);
+            if ($result === false) {
+                echo "Error: " . $sql . "<br>" . $conn->error."<br/>";
+            } elseif ($result->num_rows > 0) {
+                while ($row = $result->fetch_assoc()) {
+                    array_push($info, $row);
+                }
+            }
+
+        ?>
+        <div class = "centered-container">
+            <table border="1">
+                <tr style="background-color: #eee;">
+                    <th>DATE</th>
+                    <th>ITEM</th>
+                    <th>QUANTITY</th>
+                    <th>REMIND @</th>
+                    <th>BRAND</th>
+                    <th>SUPPLY</th>
+                    <th>PRICE</th>
+                    <th>DESCRIPTION</th>
+                    <th>NOTE</th>
+                    <th>STATUS</th>
+                </tr>
+                
+                <?php
+                // Set the background color of the table
+                    $colour = "#c3cde6";
+                    foreach ($info as $row){
+                        $row['description'] = truncate($row['description'], 50);
+                        $row['note'] = truncate($row['note'], 50);
+                ?>
+                <tr bgcolor="<?= $colour ?>">
+                    <td class="center"><?= $row['date'] ?></td>
+                    <td class="center"><?= $row['item'] ?></td>
+                    <td class="center"><?= $row['quantity'] ?></td>
+                    <td class="center"><?= $row['remindat'] ?></td>
+                    <td class="center"><?= $row['brand'] ?></td>
+                    <td class="center"><?= $row['supply'] ?></td>
+                    <td class="center"><?= $row['price'] ?></td>
+                    <td class="center"><?= $row['description'] ?></td>
+                    <td class="center"><?= $row['note'] ?></td>
+                    <td class="center"><?= $row['status'] ?></td>
+                </tr>
+                <?php
+                    }
+                ?>
+            </table>
+            <br><br><br>
+        </div>
     </body>
 </html>

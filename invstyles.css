@@ -22,11 +22,12 @@ body {
     align-items: center;
     text-align: center;
 }
+
 table {
     border-collapse: collapse;
     width: 1560px;
     border: 2px solid black;
-    margin-top: 10px;
+    margin-bottom: 20px;
 }
 
 th, td {
@@ -45,7 +46,7 @@ input[type="submit"], input[type="button"] {
     transition: background-color 0.2s, color 0.2s;
 }
 
-input[type='text'], .price {
+input[type='text'], .marg {
     margin-right: 20px;
 }
 
@@ -139,6 +140,43 @@ textarea {
 textarea:focus {
     border-color: #555;
 }
+
+
+/* Styling for pagination links */
+.pagination {
+    font-size: 20px; /* Adjust the font size as per your preference */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.pagination a {
+    margin: 10px;
+    text-decoration: none;
+    color: #333;
+}
+
+.current-page {
+    font-weight: bold;
+}
+
+.go-btn {
+    margin-left: 10px;
+}
+
+.go-form {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 10px;
+}
+
+.go-input {
+    width: 100px; /* Adjust the width as needed */
+    padding: 5px;
+    font-size: 16px;
+}
+
 @media print {
     /* Define print-specific styles here */
     table {
