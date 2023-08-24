@@ -6,7 +6,7 @@
     $all = false;
     if (isset($_POST['itemsPerPage'])) {
         $itemsPerPage = $_POST['itemsPerPage'];
-    } else {
+    } elseif (isset($_SESSION['itemsPerPage'])) {
         $itemsPerPage = $_SESSION['itemsPerPage'];
     }
     if ($itemsPerPage == 'ALL') {
@@ -141,15 +141,7 @@
         }
     }
     if (!$all) $sql = $sql. " LIMIT " . $itemsPerPage . " OFFSET " . $startIndex;
-    $info = array();
-    $result = $conn->query($sql);
-    if ($result === false) {
-        echo "Error: " . $sql . "<br>" . $conn->error."<br/>";
-    } elseif ($result->num_rows > 0) {
-        while ($row = $result->fetch_assoc()) {
-            array_push($info, $row);
-        }
-    }
+    $info = retrieveAllEmails($conn, $sql);
     if (!$all) $totalPages = calculatePages($sql, $conn);
 
 ?>

@@ -137,4 +137,28 @@
         echo "<h3 class=\"hide-on-print\" style=\"text-align: center;\">" . $totalPages . " pages in total. </h3>";
 
     }
+
+    function retrieveAllEmails($conn, $sql) {
+        try {
+            $info = array();
+            $result = $conn->query($sql);
+            if ($result === false) {
+                echo "Error: " . $sql . "<br>" . $conn->error."<br/>";
+                exit(1);
+            } elseif ($result->num_rows > 0) {
+                while ($row = $result->fetch_assoc()) {
+                    array_push($info, $row);
+                }
+            }
+            return $info;
+        } catch (Exception $e) {
+            $_POST['itemSelect'] = '';
+            $_POST['afterdate'] = '';
+            $_POST['beforedate'] = '';
+            $_SESSION['itemSelect'] = '';
+            $_SESSION['afterdate'] = '';
+            $_SESSION['beforedate'] = '';
+			header("Location: inv.php?page=1");
+        }
+    }
 ?>
